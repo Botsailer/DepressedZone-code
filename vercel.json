@@ -1,0 +1,25 @@
+{
+  "routes": [
+    {
+      "src": "/(.*).html",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.*).js",
+      "dest": "/$1.js"
+    },
+    {
+      "src": "/(.*).css",
+      "dest": "/$1.css"
+    },
+        {
+      "src": "/(.*).gif",
+      "dest": "/$1.gif"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html",
+      "continue": true
+    }
+  ]
+}
