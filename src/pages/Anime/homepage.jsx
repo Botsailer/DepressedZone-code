@@ -51,7 +51,8 @@ function Homepage() {
 
     Promise.all([fetchPopularAnime(), fetchRecentEpisodes(), fetchGenres()]).then(() => {
       setLoading(false);
-        setShowPopup(true);
+      const neverShowPopup = localStorage.getItem('neverShowPopup');
+      if (!neverShowPopup) setShowPopup(true);
     }).catch((error) => {
       console.log(error);
     })
