@@ -17,6 +17,10 @@
       "dest": "/$1.gif"
     },
     {
+      "src": "/(.*).webm",
+      "dest": "/$1.webm"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html",
       "continue": true

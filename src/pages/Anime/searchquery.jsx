@@ -9,7 +9,7 @@ function Searchquery() {
   const [animeData, setAnimeData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
-  const [TotalPages, setTotalPages] = useState(0);
+
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
@@ -17,11 +17,9 @@ function Searchquery() {
     if (anime) {
       const fetchData = async () => {
         setLoading(true);
-        const response = await axios.get(`/anime/gogoanime/${anime}?page=${currentPage}`);
-        setAnimeData(response.data.results);
-        console.log(response.data);
+        const response = await axios.get(`/meta/anilist/${anime}?fetchFiller=true&dub=true&page=${currentPage}`);
+        setAnimeData(response.data.results);;
         setHasNextPage(response.data.hasNextPage);
-        setTotalPages(response.data.totalPages);
         setLoading(false);
       };
       fetchData();
@@ -48,7 +46,7 @@ function Searchquery() {
 
   return (
     <div className="container mx-auto">
-      <h1 className="text-3xl font-bold mt-8 mb-4">Search Reult for : {anime.replace(/-/g,' ')}</h1>
+      <h1 className="text-3xl font-bold mt-8 mb-4">Search Reult for : {anime.replace(/-/g, ' ')}</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {animeData.map((anime) => (
 
@@ -56,12 +54,12 @@ function Searchquery() {
             <div
               onClick={() => navigate(`/anime/${anime.id}`)} key={anime.id} className="flex flex-col items-center mb-4 border-2 border-gray-300 rounded p-4 hover:shadow-lg transition duration-300 cursor-pointer">
 
-              <img src={anime.image} alt={anime.title} className="w-40 h-52 rounded mb-2" />
+              <img src={anime.image} alt={anime.title.userPreferred} className="w-40 h-52 rounded mb-2" />
               <div className="mt-2 text-center">
-                <h3 className="font-bold">{anime.title}</h3>
+                <h3 className="font-bold">{anime.title.userPreferred}</h3>
                 <p>
-                  <span className="font-bold">Sub/Dub :{anime.subOrDub}</span> 
-                                  </p>
+                  <span className="font-bold">Type :{anime.type}</span>
+                </p>
                 <p>
                   <span className="font-bold"> {anime.releaseDate} </span>
                 </p>

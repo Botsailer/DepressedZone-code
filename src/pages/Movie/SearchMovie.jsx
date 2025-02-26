@@ -21,7 +21,7 @@ function SearchMovie() {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const searchResponse = await axios.get(`/movies/flixhq/${id.id}`);
+                const searchResponse = await axios.get(`/meta/tmdb/${id.id}`);
                 console.log(searchResponse.data);
                 setResults(searchResponse.data.results);
             } catch (error) {
@@ -59,7 +59,7 @@ function SearchMovie() {
     <div className="flex flex-wrap justify-center">
       {Results.map(item => (
         <div onClick={()=>{
-            navigate(`/movie/info?Id=${item.id}`)
+            navigate(`/movie/info?Id=${item.id}&type=${item.type}`)
         }} key={item.id} className="m-4 w-64">
           <img src={item.image} alt={item.title} className="w-full h-96 object-cover rounded-md shadow-lg" />
           <div className="mt-2">

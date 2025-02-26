@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDebounce } from 'use-debounce';
 import { useQuery } from 'react-query';
-import { FiSearch, FiMoon, FiSun, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import GenreGrid from './genersGrid'; 
+import { FiSearch, FiMoon, FiSun, FiX, FiChevronLeft, FiChevronRight, FiArrowLeft } from 'react-icons/fi';
 
+// Custom Loading Component with Animation
 const Loading = () => (
   <div className="flex justify-center items-center h-64">
     <div className="relative w-24 h-24">
@@ -21,6 +21,7 @@ const Loading = () => (
   </div>
 );
 
+// Custom hook for dark mode
 const useDarkMode = () => {
   const [theme, setTheme] = useState(
     localStorage.getItem('theme') || 
@@ -95,9 +96,9 @@ const SearchSuggestions = ({ suggestions, searchTerm, onSelectSuggestion, onClos
   );
 };
 
-// Main component
-function MangaPage() {
-  const [pageNumber, setPageNumber] = useState(1);
+function GenrePage() {
+  const { genreId } = useParams();
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch] = useDebounce(searchTerm, 300);
   const [suggestions, setSuggestions] = useState([]);
@@ -135,17 +136,34 @@ function MangaPage() {
     }
   `;
 
-  // Fetch manga list - now using pageNumber state instead of page
+  // Get genre name from ID
+  const getGenreName = (id) => {
+    const genreMap = {
+      'romance': 'Romance',
+      'action': 'Action',
+      'comedy': 'Comedy',
+      'drama': 'Drama',
+      'yuri': 'Yuri',
+      'fantasy': 'Fantasy',
+      'shoujo': 'Shoujo',
+      'seinen': 'Seinen',
+      'shounen': 'Shounen',
+      'slice-of-life': 'Slice of Life'
+    };
+    
+    return genreMap[id] || id.charAt(0).toUpperCase() + id.slice(1).replace(/-/g, ' ');
+  };
+
+  // Fetch manga by genre
   const { 
     data, 
     isLoading, 
     isError, 
     error,
-    refetch
   } = useQuery(
-    ['mangaList', pageNumber],
+    ['genreManga', genreId, page],
     async () => {
-      const url = `https://manga-api-vercel.vercel.app/api/mangalist?page=${pageNumber}`;
+      const url = `https://manga-api-vercel.vercel.app/api/genere/${genreId}?page=${page}`;
       const response = await axios.get(url);
       return response.data;
     },
@@ -154,99 +172,12 @@ function MangaPage() {
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: 2,
       onError: (err) => {
-        console.error('Error fetching manga list:', err);
+        console.error(`Error fetching manga for genre ${genreId}:`, err);
       }
     }
   );
 
-  // Fetch genres - now also using pageNumber state
-  const {
-    data: genreData,
-    isLoading: isGenreLoading,
-  } = useQuery(
-    ['genres', pageNumber],
-    async () => {
-      const defaultGenres = [
-        { id: 'romance', name: 'Romance' },
-        { id: 'action', name: 'Action' },
-        { id: 'comedy', name: 'Comedy' },
-        { id: 'drama', name: 'Drama' },
-        { id: 'yuri', name: 'Yuri' },
-        { id: 'fantasy', name: 'Fantasy' },
-        { id: 'shoujo', name: 'Shoujo' },
-        { id: 'seinen', name: 'Seinen' },
-        { id: 'shounen', name: 'Shounen' },
-        { id: 'slice-of-life', name: 'Slice of Life' },
-        { id: 'bloody', name: 'Bloody' },
-        { id: 'demons', name: 'Demons' },
-        { id: 'system', name: 'System' },
-        { id: 'loli', name: 'Loli' },
-        { id: 'ninja', name: 'Ninja' },
-        { id: 'incest', name: 'Incest' },
-        { id: 'crime', name: 'Crime' },
-        { id: 'office-workers', name: 'Office Workers' },
-        { id: 'sexual-violence', name: 'Sexual Violence' },
-        { id: 'crossdressing', name: 'Crossdressing' },
-        { id: 'gore', name: 'Gore' },
-        { id: 'delinquents', name: 'Delinquents' },
-        { id: 'shota', name: 'Shota' },
-        { id: 'police', name: 'Police' },
-        { id: 'manga', name: 'Manga' },
-        { id: 'time-travel', name: 'Time Travel' },
-        { id: 'monster-girls', name: 'Monster Girls' },
-        { id: 'anthology', name: 'Anthology' },
-        { id: '4-koma', name: '4-Koma' },
-        { id: 'oneshot', name: 'Oneshot' },
-        { id: 'animals', name: 'Animals' },
-        { id: 'heartwarming', name: 'Heartwarming' },
-        { id: 'superhero', name: 'Superhero' },
-        { id: 'magic', name: 'Magic' },
-        { id: 'genderswap', name: 'Genderswap' },
-        { id: 'post-apocalyptic', name: 'Post-Apocalyptic' },
-        { id: 'music', name: 'Music' },
-        { id: 'sci-fi', name: 'Sci-Fi' },
-        { id: 'self-published', name: 'Self-Published' },
-        { id: 'aliens', name: 'Aliens' },
-        { id: 'villainess', name: 'Villainess' },
-        { id: 'virtual-reality', name: 'Virtual Reality' },
-        { id: 'ghosts', name: 'Ghosts' },
-        { id: 'award-winning', name: 'Award Winning' },
-        { id: 'video-games', name: 'Video Games' },
-        { id: 'magical-girls', name: 'Magical Girls' },
-        { id: 'reverse-harem', name: 'Reverse Harem' },
-        { id: 'fan-colored', name: 'Fan Colored' },
-        { id: 'zombies', name: 'Zombies' },
-        { id: 'mafia', name: 'Mafia' },
-        { id: 'webtoon', name: 'Webtoon' },
-        { id: 'royal-family', name: 'Royal Family' },
-        { id: 'manhwa-hot', name: 'Manhwa Hot' },
-        { id: 'traditional-games', name: 'Traditional Games' },
-        { id: 'magical', name: 'Magical' },
-        { id: 'vampires', name: 'Vampires' },
-        { id: 'revenge', name: 'Revenge' },
-        { id: 'ecchi', name: 'Ecchi' },
-        { id: 'samurai', name: 'Samurai' },
-        { id: 'yaoi', name: 'Yaoi(BL)' },
-        { id: 'monster', name: 'Monster' },
-        { id: 'super-power', name: 'Super Power' },
-        { id: 'animal', name: 'Animal' },
-        { id: 'game', name: 'Game' }
-      ];
-
-      try {
-        const response = await axios.get(`https://manga-api-vercel.vercel.app/api/mangalist?page=${pageNumber}`);
-        return response.data.metaData?.category || defaultGenres;
-      } catch (error) {
-        console.error('Error fetching genres:', error);
-        return defaultGenres;
-      }
-    },
-    {
-      staleTime: Infinity,
-    }
-  );
-
-  
+  // Search suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (debouncedSearch.length < 2) {
@@ -316,16 +247,22 @@ function MangaPage() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
-  // Handle page change with updated pageNumber state
+  // Handle page change
   const handlePageChange = (newPage) => {
-    setPageNumber(newPage);
+    setPage(newPage);
     // Scroll to top when changing page
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Render manga cards
   const renderMangaCards = () => {
-    if (!data || !data.mangaList) return null;
+    if (!data || !data.mangaList || data.mangaList.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400">No manga found for this genre.</p>
+        </div>
+      );
+    }
 
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
@@ -368,7 +305,7 @@ function MangaPage() {
     );
   };
 
-  // Render pagination controls - updated to use pageNumber
+  // Render pagination controls
   const renderPagination = () => {
     if (!data || !data.metaData || !data.metaData.totalPages) return null;
 
@@ -377,8 +314,8 @@ function MangaPage() {
     return (
       <div className="flex justify-center items-center mt-8 space-x-2">
         <button
-          onClick={() => handlePageChange(pageNumber - 1)}
-          disabled={pageNumber <= 1}
+          onClick={() => handlePageChange(page - 1)}
+          disabled={page <= 1}
           className="flex items-center px-3 py-2 bg-white dark:bg-gray-800 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none transition-colors"
         >
           <FiChevronLeft className="w-5 h-5" />
@@ -386,13 +323,13 @@ function MangaPage() {
         
         <div className="px-4 py-2 rounded-md bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
           <span className="text-gray-700 dark:text-gray-300">
-            {pageNumber} / {totalPages}
+            {page} / {totalPages}
           </span>
         </div>
         
         <button
-          onClick={() => handlePageChange(pageNumber + 1)}
-          disabled={pageNumber >= totalPages}
+          onClick={() => handlePageChange(page + 1)}
+          disabled={page >= totalPages}
           className="flex items-center px-3 py-2 bg-white dark:bg-gray-800 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none transition-colors"
         >
           <FiChevronRight className="w-5 h-5" />
@@ -406,89 +343,94 @@ function MangaPage() {
       {/* Custom cursor styles */}
       <style>{globalStyles}</style>
 
-      <main className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        {/* Search bar and theme toggle moved to top of main content */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full">
-            <div className="relative flex-grow" ref={searchInputRef}>
-              <form onSubmit={handleSearchSubmit} className="relative">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search for manga..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-colors text-gray-900 dark:text-white"
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiSearch className="text-gray-500 dark:text-gray-400" />
-                  </div>
-                </div>
-                <AnimatePresence>
-                  {showSuggestions && (
-                    <SearchSuggestions
-                      suggestions={suggestions}
-                      searchTerm={searchTerm}
-                      onSelectSuggestion={handleSelectSuggestion}
-                      onClose={() => setShowSuggestions(false)}
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-30 transition-colors">
+        <div className="container mx-auto px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="flex items-center">
+              <Link to="/manga" className="mr-3 text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                <FiArrowLeft className="w-5 h-5" />
+              </Link>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white transition-colors">
+                {getGenreName(genreId)}
+              </h1>
+            </div>
+            
+            {/* Search and tools */}
+            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+              <div className="relative flex-grow" ref={searchInputRef}>
+                <form onSubmit={handleSearchSubmit} className="relative">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search for manga..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent transition-colors text-gray-900 dark:text-white"
                     />
-                  )}
-                </AnimatePresence>
-              </form>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <FiSearch className="text-gray-500 dark:text-gray-400" />
+                    </div>
+                  </div>
+                  <AnimatePresence>
+                    {showSuggestions && (
+                      <SearchSuggestions
+                        suggestions={suggestions}
+                        searchTerm={searchTerm}
+                        onSelectSuggestion={handleSelectSuggestion}
+                        onClose={() => setShowSuggestions(false)}
+                      />
+                    )}
+                  </AnimatePresence>
+                </form>
+              </div>
+              
+              <div className="flex space-x-2">
+                <button
+                  onClick={toggleTheme}
+                  className="p-2 bg-white dark:bg-gray-800 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:ring-opacity-50"
+                >
+                  {theme === 'dark' ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Browse by Genre Section */}
-        <section className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-              Browse by Genre
-            </h2>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {genreData ? `${genreData.length} genres available` : ''}
-            </span>
+      <main className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        {/* Genre statistics */}
+        {data?.metaData && (
+          <div className="mb-6">
+            <div className="inline-block px-4 py-2 bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 rounded-md">
+              <span className="font-medium">{getGenreName(genreId)}</span>: {data.metaData.totalStories || 0} manga
+            </div>
           </div>
-          
-          {isGenreLoading ? (
-            <div className="h-40 flex items-center justify-center">
-              <Loading />
-            </div>
-          ) : (
-            <GenreGrid genres={genreData || []} />
-          )}
-        </section>
-        
-        {/* Latest Manga Section */}
-        <section>
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            Latest Updates
-          </h2>
+        )}
 
-          {/* Error state */}
-          {isError && (
-            <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-md mb-6">
-              <p>Error loading manga list: {error?.message || 'Unknown error occurred'}</p>
-              <button
-                onClick={() => refetch()}
-                className="mt-2 px-4 py-2 bg-red-200 dark:bg-red-800 rounded-md hover:bg-red-300 dark:hover:bg-red-700 transition-colors"
-              >
-                Try Again
-              </button>
-            </div>
-          )}
+        {/* Error state */}
+        {isError && (
+          <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-md mb-6">
+            <p>Error loading manga list: {error?.message || 'Unknown error occurred'}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 px-4 py-2 bg-red-200 dark:bg-red-800 rounded-md hover:bg-red-300 dark:hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
 
-          {/* Loading state */}
-          {isLoading ? <Loading /> : (
-            <>
-              {/* Manga grid */}
-              {renderMangaCards()}
-              
-              {/* Pagination */}
-              {renderPagination()}
-            </>
-          )}
-        </section>
+        {/* Loading state */}
+        {isLoading ? <Loading /> : (
+          <>
+            {/* Manga grid */}
+            {renderMangaCards()}
+            
+            {/* Pagination */}
+            {renderPagination()}
+          </>
+        )}
       </main>
 
       {/* Footer */}
@@ -503,4 +445,4 @@ function MangaPage() {
   );
 }
 
-export default MangaPage;
+export default GenrePage;

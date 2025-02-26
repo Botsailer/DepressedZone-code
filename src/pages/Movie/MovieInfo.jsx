@@ -1,94 +1,257 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import axios from '../../helper/axios';
 import Loadingc from '../../Components/Loading';
+import { useLocation } from 'react-router-dom';
+const MovieInfo = () => {
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const id = query.get('id');
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [movieData, setMovieData] = useState(null);
+  const parallaxRef = useRef(null);
+  const [scrollY, setScrollY] = useState(0);
 
-function MovieInfo() {
-  const [searchParams] = useSearchParams();
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState(null);
-  const id = searchParams.get('Id');
-    const navigate = useNavigate();
+  // Parallax effect
   useEffect(() => {
-    console.log(id);
-    const fetchData = async () => {
+
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const fetchMovieData = async () => {
+      if (!id) {
+        toast.error('Missing movie ID');
+        return;
+      }
+
       try {
         setLoading(true);
-        const searchResponse = await axios.get(`/movies/flixhq/info?id=${id}`);
-        console.log(searchResponse.data);
-        setResults(searchResponse.data);
-      } catch (error) {
-        console.error('Error fetching data', error);
+        const response = await axios.get(`/movies/flixhq/info?id=${id}`)
+        setMovieData(response.data);
+      } catch (err) {
+        toast.error(err.message || 'Failed to fetch movie data');
+        console.error('Error fetching movie data:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-    fetchData();
+
+    fetchMovieData();
   }, [id]);
 
-  if (id === 'undefined') {
+  if (loading) return <Loadingc />;
+
+  if (!movieData) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-gray-800">
-        <h1 className="text-6xl font-bold">404</h1>
-        <h2 className="text-4xl">Oops! Page not found maybe you skipped a step.</h2>
-        <p className="mt-4 text-xl">We are legally blind.</p>
-        <p className="mt-4 text-xl">But don't worry, here's the solution: put a query in the URL.</p>
-        <img
-          className="w-64 h-64 mt-8"
-          src="https://i.imgur.com/qIufhof.png"
-          alt="Barigade: I have no idea what I'm doing"
-        />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center p-8 bg-gray-800 rounded-lg">
+          <h2 className="text-2xl font-bold mb-4">No Movie Found</h2>
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition"
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
 
-  if (loading) {
-    return <Loadingc />;
-  }
-
-  if (!results) {
-    return <div>No data found.</div>;
-  }
-
-  const { title, description, image, cover, rating, duration, releaseDate, genres, casts } = results;
+  const {
+    title,
+    description,
+    image,
+    cover,
+    rating,
+    duration,
+    releaseDate,
+    genres,
+    casts,
+    recommendations,
+    production,
+    country,
+    episodes
+  } = movieData;
+  console.log(movieData);
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col md:flex-row">
-        <img src={cover} alt={title} className="w-full md:w-1/3 rounded-lg" />
-        <div className="md:ml-8 mt-4 md:mt-0 flex-1">
-          <h1 className="text-3xl font-bold">{title}</h1>
-          <p className="mt-2 ">{description}</p>
-          <p className="mt-4"><strong>Rating:</strong> {rating}</p>
-          <p className="mt-2"><strong>Duration:</strong> {duration}</p>
-          <p className="mt-2"><strong>Release Date:</strong> {releaseDate}</p>
-          <p className="mt-2"><strong>Genres:</strong> {genres.join(', ')}</p>
-          <p className="mt-2"><strong>Cast:</strong> {casts.join(', ')}</p>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <ToastContainer position="top-right" theme="dark" />
+      
+      {/* Parallax Hero Section */}
+      <div 
+        ref={parallaxRef}
+        className="relative h-[70vh] overflow-hidden"
+      >
+        <div 
+          className="absolute inset-0 w-full h-full"
+          style={{
+            transform: `translateY(${scrollY * 0.5}px)`,
+            backgroundImage: `url(${cover})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50" />
         </div>
-   
-      </div>
-      <div className="flex justify-center mt-4">
-    <button onClick={
-        ()=>{
-            window.open(results.url, "_blank")
-        }
-    } className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Watch now
-    </button>
-</div>
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold">Recommendations</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-          {results.recommendations.map(rec => (
-            <div key={rec.id} className=" p-2 rounded-lg">
-              <img src={rec.image} alt={rec.title} className="rounded-lg" />
-              <p className="mt-2 text-center">{rec.title}</p>
-              <span className="text-center text-sm"> Type : {rec.type}</span>
+        
+        <div className="absolute bottom-0 left-0 right-0 p-8 z-10">
+          <div className="container mx-auto flex flex-col md:flex-row items-end gap-8">
+            <div className="w-64 flex-shrink-0 transform hover:scale-105 transition duration-300">
+              <img 
+                src={image} 
+                alt={title}
+                className="w-full rounded-lg shadow-2xl"
+              />
             </div>
-          ))}
+            
+            <div className="flex-grow">
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">{title}</h1>
+              <div className="flex flex-wrap items-center gap-4 text-lg opacity-90">
+                <span>{releaseDate}</span>
+                <span>•</span>
+                <span>{duration}</span>
+                <span>•</span>
+                <div className="flex items-center">
+                  <span className="text-yellow-400">★</span>
+                  <span className="ml-1">{rating}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Content Section */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid md:grid-cols-3 gap-12">
+          {/* Main Content */}
+          <div className="md:col-span-2 space-y-8">
+            <div className="bg-gray-800 p-6 rounded-lg transform hover:scale-[1.01] transition">
+              <h2 className="text-2xl font-bold mb-4">Overview</h2>
+              <p className="text-gray-300 leading-relaxed">{description}</p>
+            </div>
+
+            <div className="bg-gray-800 p-6 rounded-lg transform hover:scale-[1.01] transition">
+              <h2 className="text-2xl font-bold mb-4">Cast</h2>
+              <div className="flex flex-wrap gap-3">
+                {casts.map(actor => (
+                  <span 
+                    key={actor}
+                    className="px-4 py-2 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition cursor-pointer"
+                  >
+                    {actor}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <div className="bg-gray-800 p-6 rounded-lg">
+              <h3 className="text-xl font-bold mb-4">Movie Details</h3>
+              <div className="space-y-3">
+                <div>
+                  <span className="text-gray-400">Production:</span>
+                  <p>{production}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Country:</span>
+                  <p>{country}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Genres:</span>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {genres.map(genre => (
+                      <span 
+                        key={genre}
+                        className="px-3 py-1 bg-gray-700 rounded-full text-sm"
+                      >
+                        {genre}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {episodes.length > 1 ? (
+  <div className="space-y-4">
+    <h3 className="text-xl font-bold">Episodes</h3>
+    <div className="grid grid-cols-2 gap-2">
+      {episodes.map((episode) => (
+        <button 
+          key={episode.id}
+          onClick={() => navigate(`/movie/watch?episodeId=${episode.id}&mediaId=${id}`)}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition"
+        >
+          {episode.title}
+        </button>
+      ))}
+    </div>
+  </div>
+) : (
+  <button 
+    onClick={() => navigate(`/movie/watch?episodeId=${episodes[0].id}&mediaId=${id}`)}
+    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg transition transform hover:scale-105"
+  >
+    Watch Now
+  </button>
+)}
+          </div>
+        </div>
+
+        {/* Recommendations Section */}
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {recommendations.map(movie => (
+              <div 
+                key={movie.id}
+                className="group cursor-pointer transform hover:scale-105 transition duration-300"
+                onClick={() => navigate(`/movie/info/${movie.id}`)}
+              >
+                <div className="relative aspect-[2/3] overflow-hidden rounded-lg">
+                  <img 
+                    src={movie.image} 
+                    alt={movie.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="text-white font-bold">{movie.title}</h3>
+                      <p className="text-gray-300 text-sm">{movie.duration} min</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Add some CSS animations */}
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
-}
+};
 
 export default MovieInfo;

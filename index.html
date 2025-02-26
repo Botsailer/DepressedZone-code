@@ -1,13 +1,89 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Depressed Zone</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>Depressed Zone - Ad-Free Anime, Manga, K-Drama Entertainment Platform</title>
+    <meta name="title" content="Depressed Zone - Ad-Free Anime, Manga, K-Drama Entertainment Platform">
+    <meta name="description" content="Explore ad-free anime, manga, K-dramas, and movies with no signup required. Stream your favorite Japanese and Korean content instantly on Depressed Zone.">
+    <meta name="keywords" content="anime, manga, entertainment, Korean drama, K-drama, Japanese anime, manga reader, anime streaming, DepressedZone, Depressed-Zone, depressed-zone, ad-free anime, no signup anime">
+    <meta name="author" content="Depressed Zone">
+    
+    <!-- Robots and Canonical -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://botsailer.live">
+    
+    <!-- Open Graph Meta Tags for social sharing -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://botsailer.live">
+    <meta property="og:title" content="Depressed Zone - Ad-Free Anime & Manga Platform">
+    <meta property="og:description" content="Stream anime, read manga, and watch K-dramas completely ad-free with no signup required. Your one-stop entertainment hub for Japanese and Korean content.">
+    <meta property="og:image" content="https://botsailer.live/og-image.jpg">
+    <meta property="og:site_name" content="Depressed Zone">
+    
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Depressed Zone - Ad-Free Anime & Manga">
+    <meta name="twitter:description" content="Stream anime, read manga, and watch K-dramas ad-free. No signup required.">
+    <meta name="twitter:image" content="https://botsailer.live/twitter-image.jpg">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <!-- Bing Validation -->
+    <meta name="msvalidate.01" content="8B0AE8D8941BC7503AAE61D771455D18" />
+    
+    <!-- Preconnect to required origins -->
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-61PLYNCNG4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-61PLYNCNG4');
+    </script>
+    
+    <!-- Structured Data / JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Depressed Zone",
+        "url": "https://botsailer.live",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://botsailer.live/search/{search_term_string}",
+          "query-input": "required name=search_term_string"
+        },
+        "description": "Ad-free platform for anime, manga, and K-drama entertainment with no signup required."
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Theme handling
+      if (
+        localStorage.getItem('theme') === 'dark' || 
+        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+    <noscript>
+      <div style="padding: 20px; text-align: center; background-color: #f8d7da; color: #721c24; margin: 20px;">
+        JavaScript is required to view this website. Please enable JavaScript in your browser settings to enjoy all features.
+      </div>
+    </noscript>
   </body>
 </html>

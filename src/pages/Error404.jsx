@@ -8,7 +8,7 @@ function Error404() {
   return (
     <div className="fixed top-0 left-0 w-full h-full overflow-hidden">
       <video autoPlay loop muted className="absolute top-0 left-0 w-full h-full object-cover z-[-1]">
-        <source src="1.webm" type="video/webm" />
+        <source src="/1.webm" type="video/webm" />
       </video>
       <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 z-[-1]"></div>
       <div className="container mx-auto h-full flex flex-col justify-center items-center text-white px-4">
